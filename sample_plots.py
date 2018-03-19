@@ -4,7 +4,8 @@
 import matplotlib.pyplot as plt
 from scipy.io import wavfile
 
-wav_file = '/home/vitalv/voice-gender-classifier/raw/Aaron-20080318-lbb/wav/a0043.wav'
+#wav_file = '/home/vitalv/voice-gender-classifier/raw/Aaron-20080318-lbb/wav/a0043.wav'
+wav_file = '/home/vital/voice-gender-classifier/raw/Aaron-20130527-giy/wav/b0350.wav'
 
 rate, data = wavfile.read(wav_file)
 

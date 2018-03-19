@@ -73,25 +73,13 @@ def get_wav_data(sample_name, sample_wav_folder):
 
 def get_frequencies(data, rate):
 
-	N = len(data)
-	duration = len(data) / float(rate) #duration of the sample in seconds
-	df = 1/duration #fundamental frequency in Hz
+	ft = np.fft.fft(data)
+	freqs = np.fft.fftfreq(len(ft))
+	imax = np.argmax(np.abs(ft))
+	fs = freqs[imax]
 	
-	#freqs = np.fft.fftfreq(N)
-
-	freqs = np.fft.fftfreq(N)*N*df
-	#freqs = freqs[freqs>0]
-	#freqs = freqs[freqs<280]
-
-	#freqs = np.arange(0, (len(data)/2), 1.0) * float(rate)/len(data)
-	#freqs = freqs[freqs>80]
-	#freqs = freqs[freqs<280]
-
-
-    # Find the peak in the coefficients
-    #idx = np.argmax(np.abs(np.fft.fft(data)))
-    #freq = freqs[idx]
-    #peak_freq = abs(freq * rate)
+	freq = imax*fs/len(data)
+	frequencies.append(freq)
 
 	return freqs
 
