@@ -15,161 +15,130 @@ raw_folder = './raw'
 
 def get_metadata(readme_file):
 
-	#define variables in case startswith does not work:
-	gender, age_range, pronunciation = '', '', '' 
-	for line in open(readme_file):
-		if line.startswith("Gender:"): 
-			gender = line.split(":")[1].strip()
-		elif line.startswith("Age Range:"): 
-			age_range = line.split(":")[1].strip()
-		elif line.startswith("Pronunciation dialect:"): 
-			pronunciation = line.split(":")[1].strip()
-	return gender, age_range, pronunciation
+  #define variables in case startswith does not work:
+  gender, age_range, pronunciation = '', '', '' 
+  for line in open(readme_file):
+    if line.startswith("Gender:"): 
+      gender = line.split(":")[1].strip()
+    elif line.startswith("Age Range:"): 
+      age_range = line.split(":")[1].strip()
+    elif line.startswith("Pronunciation dialect:"): 
+      pronunciation = line.split(":")[1].strip()
+  return gender, age_range, pronunciation
 
 
 
-def get_features(wav_data):
+def get_features(frequencies):
 
-	print "\nExtracting features "
-	nobs, minmax, mean, variance, skew, kurtosis =  stats.describe(wav_data)
-	median   = np.median(wav_data)
-	mode     = stats.mode(wav_data).mode[0]
-	std      = np.std(wav_data)
-	low,peak = minmax
-	q75,q25  = np.percentile(wav_data, [75 ,25])
-	iqr      = q75 - q25
-	return nobs, mean, skew, kurtosis, median, mode, std, low, peak, q25, q75, iqr
+  print "\nExtracting features "
+  nobs, minmax, mean, variance, skew, kurtosis =  stats.describe(frequencies)
+  median   = np.median(frequencies)
+  mode     = stats.mode(frequencies).mode[0]
+  std      = np.std(frequencies)
+  low,peak = minmax
+  q75,q25  = np.percentile(frequencies, [75 ,25])
+  iqr      = q75 - q25
+  return nobs, mean, skew, kurtosis, median, mode, std, low, peak, q25, q75, iqr
 
 
 
 def get_date(sample_name):
 
-	try:
-		date = pattern_date.search(sample_name).group()
-	except AttributeError:
-		date = '20000000'
-	return date
+  try:
+    date = pattern_date.search(sample_name).group()
+  except AttributeError:
+    date = '20000000'
+  return date
 
 
 
 def get_user_name(sample_name):
 
-	return re.compile("[-_]").split(sample_name)[0]
+  return re.compile("[-_]").split(sample_name)[0]
 
 
 
-def get_wav_data(sample_name, sample_wav_folder):
 
-	sample_wav_data = []
-	print "\nReading wav files for sample %s: "% sample_name
-	for wav_file in os.listdir(sample_wav_folder):
-		if wav_file.endswith('.wav'):
-			rate, data = wavfile.read(os.path.join(sample_wav_folder, wav_file))
-			sample_wav_data.append(data)
-	data = np.concatenate(sample_wav_data)
-	return data, rate
+def get_frequencies(sample_wav_folder):
 
+  #extract list of dominant frequencies in sliding windows of duration defined by 'step' for each of the 10 wav files and return an array
 
+  frequencies_lol = [] #lol: list of lists
+  for wav_file in os.listdir(sample_wav_folder):
+    rate, data = wavfile.read(os.path.join(sample_wav_folder, wav_file))
 
-def get_frequencies(data, rate):
+    #get dominating frequencies in sliding windows of 20ms
+    step = rate/2 #8000 sampling points every 0.5 sec 
+    window_frequencies = []
 
-	ft = np.fft.fft(data)
-	freqs = np.fft.fftfreq(len(ft))
-	imax = np.argmax(np.abs(ft))
-	fs = freqs[imax]
-	
-	freq = imax*fs/len(data)
-	frequencies.append(freq)
+    for i in range(0,len(data),step):
+      ft = np.fft.fft(data[i:i+step])
+      freqs = np.fft.fftfreq(len(ft))
+      imax = np.argmax(np.abs(ft))
+      freq = freqs[imax]
+      freq_in_hz = abs(freq *rate)
+      window_frequencies.append(freq_in_hz)
+      filtered_frequencies = [f for f in window_frequencies if 10<f<300 ]#and not 45<f<55] #50 Hz is noise
+      frequencies_lol.append(filtered_frequencies)
 
-	return freqs
+  frequencies = [item for sublist in frequencies_lol for item in sublist]
 
+  return frequencies
 
 
 
 
 def main():
 
-	samples = [d for d in os.listdir(raw_folder) if os.path.isdir(os.path.join(raw_folder, d))]
-	n_samples = len(samples)
+  samples = [d for d in os.listdir(raw_folder) if os.path.isdir(os.path.join(raw_folder, d))]
+  n_samples = len(samples)
 
-	columns=['nobs', 'mean', 'skew', 'kurtosis', 
-	'median', 'mode', 'std', 'low', 
-	'peak', 'q25', 'q75', 'iqr', 
-	'user_name', 'sample_date', 'age_range', 
-	'pronunciation', 'gender' ]
+  columns=['nobs', 'mean', 'skew', 'kurtosis', 
+  'median', 'mode', 'std', 'low', 
+  'peak', 'q25', 'q75', 'iqr', 
+  'user_name', 'sample_date', 'age_range', 
+  'pronunciation', 'gender' ]
 
-	myData = pd.DataFrame(columns=columns, index=range(n_samples))
+  myData = pd.DataFrame(columns=columns)#, index=range(n_samples))
 
-	for i in range(n_samples):
+  for i in range(n_samples):
 
-		sample = sorted(samples)[i]
-		sample_folder = os.path.join(raw_folder, sample)
-		sample_wav_folder = os.path.join(sample_folder, 'wav')
-		readme_file = os.path.join(sample_folder, 'etc', 'README')
+    sample = sorted(samples)[i]
+    sample_folder = os.path.join(raw_folder, sample)
+    sample_wav_folder = os.path.join(sample_folder, 'wav')
+    readme_file = os.path.join(sample_folder, 'etc', 'README')
 
-		date = get_date(sample)
-		user_name = get_user_name(sample)
-		if os.path.isfile(readme_file):
-			gender, age_range, pronunciation = get_metadata(readme_file)
+    date = get_date(sample)
+    user_name = get_user_name(sample)
+    if os.path.isfile(readme_file):
+      gender, age_range, pronunciation = get_metadata(readme_file)
 
+    if os.path.isdir(sample_wav_folder): #some of the samples don't contain a wav folder (Ex: 'LunaTick-20080329-vf1')
 
-		if os.path.isdir(sample_wav_folder): #some of the samples don't contain a wav folder (Ex: 'LunaTick-20080329-vf1')
+      frequencies = get_frequencies(sample_wav_folder)
 
-			data, rate = get_wav_data(sample, sample_wav_folder)
+      if len(frequencies) > 10: 
+        #for some of the files (ex: Aaron-20130527-giy) 
+        #I only recover frequencies of 0.0 (even if I don't subspit in chunks) which is not integrated into my lol and frequencies is empty
 
-			freqs = get_frequencies(data, rate)
+        nobs, mean, skew, kurtosis, median, mode, std, low, peak, q25, q75, iqr = get_features(frequencies)
+        sample_dict = {'nobs':nobs, 'mean':mean, 'skew':skew, 'kurtosis':kurtosis,
+                       'median':median, 'mode':mode, 'std':std, 'low': low,
+                       'peak':peak, 'q25':q25, 'q75':q75, 'iqr':iqr, 
+                       'user_name':user_name, 'sample_date':date, 
+                       'age_range':age_range, 'pronunciation':pronunciation,
+                       'gender':gender}
+        print "\nappending sample %s : %s"%(sample, sample_dict)
+        myData.loc[i] = pd.Series(sample_dict)
 
-			nobs, mean, skew, kurtosis, median, mode, std, low, peak, q25, q75, iqr = get_features(freqs)
-			sample_dict = {'nobs':nobs, 'mean':mean, 'skew':skew, 'kurtosis':kurtosis,
-							'median':median, 'mode':mode, 'std':std, 'low': low,
-							'peak':peak, 'q25':q25, 'q75':q75, 'iqr':iqr, 
-							'user_name':user_name, 'sample_date':date, 
-							'age_range':age_range, 'pronunciation':pronunciation,
-							'gender':gender}
-			print "\nappending sample %s : %s"%(sample, sample_dict)			
-			myData.loc[i] = pd.Series(sample_dict)
-
-	myData.to_csv('myData.csv')
+  myData.to_csv('myData_filtered.csv')
 
 
 
 if __name__ == '__main__':
-	main()
+  main()
 
 
 
 
 
-
-'''
-The next thing to look at is the frequency of the audio. 
-In order to do this you need to decompose the single audio wave into audio waves at different frequencies. 
-This can be done using a Fourier transform. 
-The Fourier transform effectively iterates through a frequency for as many frequencies as there are records (N) in the dataset,
-and determines the Amplitude of that frequency. The frequency for record (fk) can be calculated using the sampling rate (fs)
-The following code performs the Fourier transformation sound data and plots it. 
-The maths produces a symetrical result, with one real data solution, and an imaginary data solution
-'''
-
-
-fourier = np.fft.fft(data)
-
-#We only need the real data solution, so we can grab the first half, 
-#then calculate the frequency and plot the frequency against a scaled amplitude.
-
-n = len(data)
-fourier = fourier[0:(n/2)]
-
-# scale by the number of points so that the magnitude does not depend on the length
-fourier = fourier / float(n)
-
-#calculate the frequency at each point in Hz
-freqArray = np.arange(0, (n/2), 1.0) * (rate*1.0/n);
-
-
-
-'''
-plt.plot(fourier, color='#ff7f00')
-plt.xlabel('k')
-plt.ylabel('Amplitude')
-'''
