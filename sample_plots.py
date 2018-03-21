@@ -3,15 +3,20 @@
 
 import matplotlib.pyplot as plt
 from scipy.io import wavfile
+import seaborn as sb 
+sb.set_style("whitegrid")
 
 #wav_file = '/home/vitalv/voice-gender-classifier/raw/Aaron-20080318-lbb/wav/a0043.wav'
-wav_file = '/home/vital/voice-gender-classifier/raw/Aaron-20130527-giy/wav/b0350.wav'
-
+#wav_file = '/home/vital/voice-gender-classifier/raw/Aaron-20130527-giy/wav/b0350.wav'
+#wav_file = '/home/vitalv/voice-gender-classifier/raw/chris-20090325-esw/wav/a0060.wav'#Noise at 50Hz #check plot_frequency
+#wav_file = '/home/vitalv/voice-gender-classifier/raw/zeroschism-20160710/wav/cc-01.wav' #Noise at 60Hz
+wav_file = '/home/vitalv/voice-gender-classifier/raw/anonymous-20100621-cdr/wav/a0166.wav'
 rate, data = wavfile.read(wav_file)
 
-time = np.arange(0, float(data.shape[0]), 1) / rate
 
-#plot amplitude (or loudness) over time
+
+#plot amplitude (or loudness) over time ############
+time = np.arange(0, float(data.shape[0]), 1) / rate
 plt.figure(1)
 plt.subplot(111)
 plt.plot(time, data, linewidth=0.1, alpha=0.9, color='teal') #
@@ -24,23 +29,25 @@ plt.show()
 
 #plot also frequency ##########################
 
-def plot_frequency(data):
-	fourier = np.fft.fft(data)
-	'''
-	plt.plot(fourier, color='#ff7f00')
-	plt.xlabel('k')
-	plt.ylabel('Amplitude')
-	'''
-	n = len(data)
-	fourier = fourier[0:(n/2)]
-	# scale by the number of points so that the magnitude does not depend on the length
-	fourier = fourier / float(n)
-	#calculate the frequency at each point in Hz
-	freqArray = np.arange(0, (n/2), 1.0) * (rate*1.0/n);
-	plt.plot(freqArray/1000, 10*np.log10(fourier), color='#ff7f00', linewidth=0.15)
-	plt.xlabel('Frequency (kHz)')
-	plt.ylabel('Amplitude (dB)')
-	plt.show()
+
+fourier = np.fft.fft(data)
+'''
+plt.plot(fourier, color='#ff7f00')
+plt.xlabel('k')
+plt.ylabel('Amplitude')
+'''
+n = len(data)
+fourier = fourier[0:(n/2)]
+# scale by the number of points so that the magnitude does not depend on the length
+fourier = fourier / float(n)
+#calculate the frequency at each point in Hz
+freqArray = np.arange(0, (n/2), 1.0) * (rate*1.0/n);
+x = freqArray[freqArray<300] #human voice range
+y = 10*np.log10(fourier)[0:len(x)]
+plt.plot(x, y, color='#ff7f00', linewidth=0.15)
+plt.xlabel('Frequency (Hz)')
+plt.ylabel('Amplitude (dB)')
+plt.show()
 
 
 
