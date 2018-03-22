@@ -4,13 +4,14 @@
 import matplotlib.pyplot as plt
 from scipy.io import wavfile
 import seaborn as sb 
-sb.set_style("whitegrid")
+sb.set_style("whitegrid", {'axes.grid' : False})
 
 #wav_file = '/home/vitalv/voice-gender-classifier/raw/Aaron-20080318-lbb/wav/a0043.wav'
-#wav_file = '/home/vital/voice-gender-classifier/raw/Aaron-20130527-giy/wav/b0350.wav'
+#wav_file = '/home/vitalv/voice-gender-classifier/raw/Aaron-20130527-giy/wav/b0350.wav'
 #wav_file = '/home/vitalv/voice-gender-classifier/raw/chris-20090325-esw/wav/a0060.wav'#Noise at 50Hz #check plot_frequency
 #wav_file = '/home/vitalv/voice-gender-classifier/raw/zeroschism-20160710/wav/cc-01.wav' #Noise at 60Hz
 wav_file = '/home/vitalv/voice-gender-classifier/raw/anonymous-20100621-cdr/wav/a0166.wav'
+
 rate, data = wavfile.read(wav_file)
 
 

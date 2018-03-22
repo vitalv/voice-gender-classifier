@@ -104,19 +104,20 @@ def get_frequencies(sample_wav_folder):
   for wav_file in os.listdir(sample_wav_folder):
     rate, data = wavfile.read(os.path.join(sample_wav_folder, wav_file))
 
-    #get dominating frequencies in sliding windows of 20ms
-    step = rate/2 #8000 sampling points every 0.5 sec 
+    #get dominating frequencies in sliding windows of 200ms
+    step = rate/5 #3200 sampling points every 1/5 sec 
     window_frequencies = []
 
     for i in range(0,len(data),step):
-      ft = np.fft.fft(data[i:i+step])
-      freqs = np.fft.fftfreq(len(ft))
+      ft = np.fft.fft(data[i:i+step]) #fft returns the list N complex numbers
+      freqs = np.fft.fftfreq(len(ft)) #fftq tells you the frequencies associated with the coefficients
       imax = np.argmax(np.abs(ft))
       freq = freqs[imax]
       freq_in_hz = abs(freq *rate)
       window_frequencies.append(freq_in_hz)
-      filtered_frequencies = [f for f in window_frequencies if 10<f<300 and not 46<f<66] # I see noise at 50Hz and 60Hz
-      frequencies_lol.append(filtered_frequencies)
+      filtered_frequencies = [f for f in window_frequencies if 20<f<280 and not 46<f<66] # I see noise at 50Hz and 60Hz
+
+    frequencies_lol.append(filtered_frequencies)
 
   frequencies = [item for sublist in frequencies_lol for item in sublist]
 
@@ -181,8 +182,4 @@ def main():
 
 if __name__ == '__main__':
   main()
-
-
-
-
 

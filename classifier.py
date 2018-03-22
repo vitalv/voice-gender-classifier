@@ -73,10 +73,12 @@ mydata = mydata[mydata.gender != 'not_specified']
 mydata.loc[:,'gender'][mydata['gender']=="Male"] = 0
 mydata.loc[:,'gender'][mydata['gender']=="Female"] = 1
 
-
+#split mydata into train and test
 mydata_train, mydata_test = train_test_split(mydata, random_state=0, test_size=.2)
+
+#Standardize features by removing the mean and scaling to unit variance
 scaler = StandardScaler()
-scaler.fit(mydata_train.ix[:,features])
+scaler.fit(mydata_train.ix[:,features])  
 X_train = scaler.transform(mydata_train.ix[:,features])
 X_test = scaler.transform(mydata_test.ix[:,features])
 y_train = list(mydata_train['gender'].values)
@@ -116,12 +118,12 @@ print("Accuracy on test set: {:.3f}".format(mlp.score(X_test, y_test)))
 
 #Plot the variable importance
 def plot_feature_importances_mydata(model, c):
-    n_features = X_train.shape[1]
-    plt.figure(1,figsize=(15,9))
-    plt.barh(range(n_features), model.feature_importances_, align='center', color=c)
-    plt.yticks(np.arange(n_features), list(mydata))
-    plt.xlabel("Variable importance")
-    plt.ylabel("Independent Variable")
+    n_features = len(features)
+    plt.figure(1,figsize=(9,13))
+    plt.bar(range(n_features), model.feature_importances_, align='center', color=c)
+    plt.xticks(np.arange(n_features), features)
+    plt.ylabel("Variable importance")
+    plt.xlabel("Independent Variable")
     plt.title(model.__class__.__name__)
     plt.show()
 
