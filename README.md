@@ -1,11 +1,10 @@
 ## voice-gender-classifier
 
-### This repo contains python code for audio signal processing and machine learning methods for
-automated gender discrimination based on audio recordings.
+#### This repo contains python code for audio signal processing and machine learning methods for automated gender discrimination based on audio recordings
 
-### Please refer to the notebook **voice-gender-classification.ipynb** for details 
+#### Please refer to the notebook **voice-gender-classification.ipynb** for details 
 
-### The main steps are
+#### The main steps are
 
 
 - Scrape-download and unzip all the audio files: **scrape.py**
@@ -16,4 +15,4 @@ automated gender discrimination based on audio recordings.
 
 
 
-### Plots for individual wav files can be obtained with the code on **sample_plots.py**
+#### Plots for individual wav files can be obtained with the code on **sample_plots.py**
