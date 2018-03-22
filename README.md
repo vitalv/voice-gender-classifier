@@ -2,7 +2,8 @@
 
 #### This repo contains python code for audio signal processing and machine learning methods for automated gender discrimination based on audio recordings
 
-#### Please refer to the notebook **voice-gender-classification.ipynb** for details 
+#### Please refer to the notebook for details:  
+### voice-gender-classification.ipynb
 
 #### The main steps are
 
